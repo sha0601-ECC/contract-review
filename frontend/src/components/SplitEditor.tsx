@@ -33,7 +33,7 @@ export default function SplitEditor({
   onImageDelete,
   state,
 }: SplitEditorProps) {
-  const [leftWidth, setLeftWidth] = useState(60) // percent
+  const [leftWidth, setLeftWidth] = useState(60)
   const [highlightedClauseId, setHighlightedClauseId] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
@@ -58,7 +58,6 @@ export default function SplitEditor({
     document.body.style.userSelect = ''
   }, [])
 
-  // Attach global mouse events for drag
   if (typeof window !== 'undefined') {
     window.onmouseup = handleMouseUp
     window.onmousemove = handleMouseMove
@@ -66,38 +65,30 @@ export default function SplitEditor({
 
   const handleSuggestionClick = useCallback((clauseId: string) => {
     setHighlightedClauseId(clauseId)
-    // In a full implementation, this would scroll to and highlight the clause in the editor
+    // Reset after animation
+    setTimeout(() => setHighlightedClauseId(null), 3000)
   }, [])
 
   const handleImageClick = useCallback((imageId: string) => {
-    // In a full implementation, this would highlight the corresponding image
     console.log('Image clicked:', imageId)
   }, [])
 
   return (
     <div ref={containerRef} className="split-container">
-      <div
-        className="left-pane"
-        style={{ width: `${leftWidth}%` }}
-      >
+      <div className="left-pane" style={{ width: `${leftWidth}%` }}>
         <LeftPane
           content={content}
           onChange={onContentChange}
           highlightedClauseId={highlightedClauseId}
+          clauses={clauses}
           onImageDelete={onImageDelete}
           editable={state !== 'uploading' && state !== 'analyzing'}
         />
       </div>
 
-      <div
-        className="resize-handle"
-        onMouseDown={handleMouseDown}
-      />
+      <div className="resize-handle" onMouseDown={handleMouseDown} />
 
-      <div
-        className="right-pane"
-        style={{ width: `${100 - leftWidth}%` }}
-      >
+      <div className="right-pane" style={{ width: `${100 - leftWidth}%` }}>
         <RightPane
           clauses={clauses}
           images={images}

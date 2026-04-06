@@ -6,11 +6,12 @@ from typing import Optional
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 
 from services.parser import parse_contract
 from services.model_service import ModelService
+from services.exporter import html_to_docx
 from schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
@@ -85,6 +86,29 @@ async def analyze_contract(request: AnalyzeRequest):
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache"},
     )
+
+
+class ExportRequest(BaseModel):
+    html_content: str
+    images: list[str] = []  # base64 encoded
+    filename: str = "contract"
+
+
+@app.post("/contracts/export")
+async def export_contract(request: ExportRequest):
+    """Export HTML content + images as a Word document."""
+    try:
+        docx_bytes = html_to_docx(request.html_content, request.images)
+        filename = f"{request.filename}_审核后.docx"
+        return Response(
+            content=docx_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={
+                "Content-Disposition": f'attachment; filename*=UTF-8\'\'{filename}'
+            },
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Failed to export document: {e}")
 
 
 if __name__ == "__main__":

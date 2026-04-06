@@ -14,12 +14,15 @@ import Image from '@tiptap/extension-image'
 import Highlight from '@tiptap/extension-highlight'
 import Placeholder from '@tiptap/extension-placeholder'
 import History from '@tiptap/extension-history'
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
+import { ClauseMark } from '../extensions/ClauseMark'
+import { ClauseSuggestion } from '../services/api'
 
 interface LeftPaneProps {
   content: string
   onChange: (html: string) => void
-  highlightedClauseId?: string | null
+  highlightedClauseId: string | null
+  clauses: ClauseSuggestion[]
   onImageDelete?: (src: string) => void
   editable?: boolean
 }
@@ -28,9 +31,13 @@ export default function LeftPane({
   content,
   onChange,
   highlightedClauseId,
+  clauses,
   onImageDelete,
   editable = true,
 }: LeftPaneProps) {
+  const editorRef = useRef<ReturnType<typeof useEditor>>(null)
+  const prevClausesLength = useRef(0)
+
   const editor = useEditor({
     extensions: [
       Document,
@@ -56,6 +63,7 @@ export default function LeftPane({
         placeholder: '上传合同后，文本将显示在这里...',
       }),
       History,
+      ClauseMark,
     ],
     content,
     editable,
@@ -64,12 +72,74 @@ export default function LeftPane({
     },
   })
 
+  editorRef.current = editor
+
   // Update content when prop changes
   useEffect(() => {
     if (editor && content && editor.getHTML() !== content) {
       editor.commands.setContent(content)
     }
   }, [content, editor])
+
+  // Apply clause marks when clauses are received from analysis
+  useEffect(() => {
+    if (!editor || clauses.length === 0) return
+    if (clauses.length === prevClausesLength.current) return
+    prevClausesLength.current = clauses.length
+
+    // Apply marks for each clause that has clause_text
+    clauses.forEach((clause) => {
+      if (!clause.clause_text) return
+
+      // Find and mark the text in editor
+      const doc = editor.state.doc
+      const searchText = clause.clause_text.slice(0, 100) // First 100 chars for matching
+      let found = false
+
+      doc.descendants((node, pos) => {
+        if (found || !node.isText) return
+        if (node.text?.includes(searchText)) {
+          // Mark this text range
+          const textContent = node.text
+          const startIdx = textContent.indexOf(searchText)
+          const from = pos + startIdx
+          const to = pos + startIdx + searchText.length
+
+          editor
+            .chain()
+            .setTextSelection({ from, to })
+            .setClauseMark(clause.clause_id, clause.risk_level)
+            .run()
+
+          found = true
+        }
+      })
+    })
+  }, [editor, clauses])
+
+  // Scroll to and highlight when highlightedClauseId changes
+  useEffect(() => {
+    if (!editor || !highlightedClauseId) return
+
+    // Find the mark with this clause ID
+    const { state } = editor
+    const marks: { from: number; to: number } | null = null
+
+    state.doc.descendants((node, pos) => {
+      if (!node.isText) return
+      const mark = node.marks.find(
+        (m) =>
+          m.type.name === 'clauseMark' &&
+          m.attrs['data-clause-id'] === highlightedClauseId
+      )
+      if (mark) {
+        const from = pos
+        const to = pos + node.nodeSize
+        editor.commands.setTextSelection({ from, to })
+        editor.commands.scrollIntoView()
+      }
+    })
+  }, [editor, highlightedClauseId])
 
   // Handle image right-click delete
   useEffect(() => {
@@ -82,7 +152,6 @@ export default function LeftPane({
         const src = (target as HTMLImageElement).src
         if (confirm('确定要删除这张图片吗？')) {
           onImageDelete(src)
-          // Remove the image node
           const { state } = editor
           const pos = editor.view.posAtDOM(target, 0)
           editor.view.dispatch(state.tr.delete(pos, pos + 1))
@@ -109,8 +178,6 @@ export default function LeftPane({
           const reader = new FileReader()
           reader.onload = (ev) => {
             const b64 = ev.target?.result as string
-            // Insert as base64 image
-            const src = b64.split(',')[1]
             editor.chain().focus().setImage({ src: b64 }).run()
           }
           reader.readAsDataURL(file)
@@ -133,10 +200,7 @@ export default function LeftPane({
           </span>
         )}
       </div>
-      <div
-        className="flex-1 overflow-y-auto bg-white"
-        onPaste={handlePaste}
-      >
+      <div className="flex-1 overflow-y-auto bg-white" onPaste={handlePaste}>
         <EditorContent editor={editor} className="prose prose-sm max-w-none p-4" />
       </div>
     </div>

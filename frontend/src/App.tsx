@@ -73,16 +73,27 @@ export default function App() {
     alert('已保存')
   }, [content, filename, selectedType])
 
-  const handleDownload = useCallback(() => {
-    // Create a downloadable Word document
-    const blob = new Blob([content], { type: 'application/msword' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename.replace(/\.[^.]+$/, '_审核后.doc')
-    a.click()
-    URL.revokeObjectURL(url)
-  }, [content, filename])
+  const handleDownload = useCallback(async () => {
+    // Use backend to generate proper Word doc with images
+    try {
+      const res = await fetch('/api/contracts/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html_content: content, images, filename }),
+      })
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${filename.replace(/\.[^.]+$/, '')}_审核后.docx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export error:', err)
+      alert('导出失败，请重试')
+    }
+  }, [content, images, filename])
 
   const handleImageDelete = useCallback(
     (src: string) => {

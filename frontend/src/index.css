@@ -137,7 +137,53 @@ body {
   background: #eff6ff;
 }
 
-/* Risk level badge */
+/* Clause mark (from analysis) */
+.clause-mark {
+  border-radius: 3px;
+  padding: 1px 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clause-mark:hover {
+  filter: brightness(0.95);
+}
+
+.clause-mark.risk-mark-high {
+  background-color: #fee2e2;
+  border-left: 3px solid #ef4444;
+}
+
+.clause-mark.risk-mark-medium {
+  background-color: #fef3c7;
+  border-left: 3px solid #f59e0b;
+}
+
+.clause-mark.risk-mark-low {
+  background-color: #dcfce7;
+  border-left: 3px solid #22c55e;
+}
+
+.clause-mark.risk-mark-info {
+  background-color: #dbeafe;
+  border-left: 3px solid #3b82f6;
+}
+
+.clause-mark.risk-mark-high mark.risk-mark-high {
+  background-color: #fee2e2;
+}
+
+.ProseMirror .clause-mark.ProseMirror-selectednode {
+  outline: 2px solid #3b82f6;
+  animation: pulse-highlight 1s ease-out;
+}
+
+@keyframes pulse-highlight {
+  0% { background-color: #bfdbfe; }
+  100% { background-color: inherit; }
+}
+
+/* Phase 6 placeholder - Word export is handled server-side */
 .risk-badge {
   display: inline-block;
   padding: 2px 8px;
