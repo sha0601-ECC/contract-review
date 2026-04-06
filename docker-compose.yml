@@ -1,6 +1,44 @@
 version: '3.8'
 
 services:
+  # Local model server
+  # Start with: docker-compose up ollama -d
+  # Then run: docker-compose run --rm ollama-setup
+  # To pull the vision model
+  ollama:
+    image: ollama/ollama:latest
+    container_name: contract-review-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - contract-network
+
+  # One-time setup container to pull models
+  # Usage: docker-compose run --rm ollama-setup
+  ollama-setup:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama-data:/root/.ollama
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Pulling Ollama models..."
+        ollama pull llama3.2-vision:latest
+        echo "Models ready!"
+    networks:
+      - contract-network
+    profiles:
+      - setup
+
   backend:
     build: ./backend
     ports:
@@ -10,11 +48,19 @@ services:
       - ./contract-data:/data
     environment:
       - MODEL_MODE=${MODEL_MODE:-online}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2-vision:latest}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-6}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
     env_file:
       - .env
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - contract-network
 
   frontend:
     build: ./frontend
@@ -27,6 +73,13 @@ services:
       - VITE_API_URL=http://localhost:8000
     depends_on:
       - backend
+    networks:
+      - contract-network
 
 volumes:
   contract-data:
+  ollama-data:
+
+networks:
+  contract-network:
+    driver: bridge
