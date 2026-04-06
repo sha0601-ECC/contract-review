@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     # ----- MiniMax -----
     minimax_api_key: Optional[str] = None
-    minimax_model: str = "MiniMax-Text-01"
+    minimax_model: str = "MiniMax-M2.7"
 
     # ----- Ollama (Local) -----
     ollama_base_url: str = "http://ollama:11434"

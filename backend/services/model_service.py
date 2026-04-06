@@ -41,7 +41,7 @@ PROVIDER_CONFIG: dict[str, dict] = {
         "api_key_env": "MOONSHOT_API_KEY",
     },
     "minimax": {
-        "model": "minimax/minimax-Text-01",
+        "model": "minimax/MiniMax-M2.7",
         "api_base": "https://api.minimax.chat/v1",
         "api_key_env": "MINIMAX_API_KEY",
     },
