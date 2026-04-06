@@ -15,7 +15,7 @@ import Highlight from '@tiptap/extension-highlight'
 import Placeholder from '@tiptap/extension-placeholder'
 import History from '@tiptap/extension-history'
 import { useEffect, useCallback, useRef } from 'react'
-import { ClauseMark } from '../extensions/ClauseMark'
+import { ClauseMark } from '../extensions'
 import { ClauseSuggestion } from '../services/api'
 
 interface LeftPaneProps {

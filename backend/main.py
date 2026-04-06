@@ -3,6 +3,7 @@ import json
 import base64
 from pathlib import Path
 from typing import Optional
+from urllib.parse import quote
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -100,11 +101,12 @@ async def export_contract(request: ExportRequest):
     try:
         docx_bytes = html_to_docx(request.html_content, request.images)
         filename = f"{request.filename}_审核后.docx"
+        encoded_filename = quote(filename)
         return Response(
             content=docx_bytes,
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             headers={
-                "Content-Disposition": f'attachment; filename*=UTF-8\'\'{filename}'
+                "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}"
             },
         )
     except Exception as e:

@@ -41,7 +41,7 @@ PROVIDER_CONFIG: dict[str, dict] = {
         "api_key_env": "MOONSHOT_API_KEY",
     },
     "minimax": {
-        "model": "minimax/MiniMax-M2.7",
+        "model": "openai/MiniMax-M2.7",  # OpenAI-compatible endpoint
         "api_base": "https://api.minimax.chat/v1",
         "api_key_env": "MINIMAX_API_KEY",
     },
@@ -99,7 +99,12 @@ class ModelService:
             "minimax": settings.minimax_model,
             "ollama": settings.ollama_model,
         }
-        return model_map.get(provider, PROVIDER_CONFIG[provider]["model"])
+        model = model_map.get(provider, PROVIDER_CONFIG[provider]["model"])
+        # LiteLLM requires "provider/model" format; use the prefixed name from PROVIDER_CONFIG if already set
+        config_model = PROVIDER_CONFIG[provider]["model"]
+        if "/" in config_model:
+            return config_model  # already has provider prefix
+        return f"{provider}/{model}"
 
     def _provider_supports_vision(self, provider: str) -> bool:
         """Check if provider supports image inputs."""
@@ -225,13 +230,20 @@ class ModelService:
         config = PROVIDER_CONFIG.get(provider, {})
         api_key_env = config.get("api_key_env")
         if api_key_env:
-            key = os.environ.get(api_key_env) or self._get_api_key_from_settings(api_key_env)
-            if key:
-                os.environ[api_key_env] = key
+            env_key = os.environ.get(api_key_env)
+            settings_key = self._get_api_key_from_settings(api_key_env)
+            # Prefer settings key if env key is missing or is a placeholder
+            if settings_key and (not env_key or env_key in ("sk-xxxxx", "sk-ant-xxxxx")):
+                os.environ[api_key_env] = settings_key
 
         extra_kwargs = {}
         if provider != "ollama":
             extra_kwargs["api_key"] = os.environ.get(api_key_env) if api_key_env else None
+
+        # Extra params per provider
+        provider_extra: dict = {}
+        if provider == "minimax":
+            provider_extra["thinking_disable"] = True  # Avoid reasoning text mixing with JSON
 
         # streaming
         try:
@@ -242,6 +254,7 @@ class ModelService:
                 temperature=0.3,
                 response_format={"type": "json_object"},
                 **extra_kwargs,
+                **provider_extra,
             )
 
             full_response = ""
@@ -249,13 +262,27 @@ class ModelService:
                 if chunk.choices and chunk.choices[0].delta.content:
                     content = chunk.choices[0].delta.content
                     full_response += content
-                    if full_response.strip().startswith("{"):
-                        yield {"type": "partial", "content": full_response}
+
+            # Find the first valid JSON object (skip any non-JSON prefix like thinking text)
+            json_part = ""
+            if full_response.strip().startswith("{"):
+                json_part = full_response.strip()
+            else:
+                first_brace = full_response.find("{")
+                if first_brace >= 0:
+                    decoder = json.JSONDecoder()
+                    try:
+                        obj, end_idx = decoder.raw_decode(full_response[first_brace:])
+                        json_part = full_response[first_brace:first_brace + end_idx]
+                    except json.JSONDecodeError:
+                        json_part = full_response
+                else:
+                    json_part = full_response
 
             # Parse final result
-            if full_response.strip().startswith("{"):
+            if json_part.strip().startswith("{"):
                 try:
-                    result = json.loads(full_response)
+                    result = json.loads(json_part)
                     clauses = [ClauseSuggestion(**c) for c in result.get("clauses", [])]
                     images = [ImageSuggestion(**img) for img in result.get("images", [])]
 
