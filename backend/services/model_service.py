@@ -111,7 +111,7 @@ class ModelService:
             "qwen": True,    # qwen-vl series
             "kimi": True,    # moonshot-v1 supports vision
             "deepseek": False,
-            "minimax": False,
+            "minimax": True,
         }
         return vision_providers.get(provider, False)
 
