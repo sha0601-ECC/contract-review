@@ -62,12 +62,13 @@ export async function analyzeContract(
   text: string,
   contractType: string,
   images: string[],
-  onChunk: (result: AnalyzeResult) => void
+  onChunk: (result: AnalyzeResult) => void,
+  provider?: string
 ): Promise<void> {
   const response = await fetch(`${API_BASE}/contracts/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, contract_type: contractType, images }),
+    body: JSON.stringify({ text, contract_type: contractType, images, provider }),
   })
 
   if (!response.ok) throw new Error('Failed to analyze contract')

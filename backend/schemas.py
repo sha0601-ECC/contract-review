@@ -18,6 +18,7 @@ class AnalyzeRequest(BaseModel):
     text: str
     contract_type: str
     images: list[str] = []  # base64 encoded images
+    provider: Optional[str] = None  # claude / deepseek / qwen / kimi / minimax / ollama / openai
 
 
 class ClauseSuggestion(BaseModel):

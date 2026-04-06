@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import SplitEditor from './components/SplitEditor'
 import ContractTypeSelect from './components/ContractTypeSelect'
+import ProviderSelect from './components/ProviderSelect'
 import UploadPanel from './components/UploadPanel'
-import { getContractTypes, parseContract, ContractType } from './services/api'
+import { getContractTypes, parseContract, analyzeContract, ContractType } from './services/api'
 import { useAnalysis } from './hooks/useAnalysis'
 import { FiPlay, FiRefreshCw, FiDownload, FiSave } from 'react-icons/fi'
 
 export default function App() {
   const [contractTypes, setContractTypes] = useState<ContractType[]>([])
   const [selectedType, setSelectedType] = useState('')
+  const [selectedProvider, setSelectedProvider] = useState('claude')
   const [content, setContent] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [filename, setFilename] = useState('')
@@ -57,24 +58,22 @@ export default function App() {
 
   const handleAnalyze = useCallback(() => {
     if (!content || !selectedType) return
-    analyze(content, selectedType, images)
-  }, [content, selectedType, images, analyze])
+    analyze(content, selectedType, images, selectedProvider)
+  }, [content, selectedType, images, selectedProvider, analyze])
 
   const handleReanalyze = useCallback(() => {
     handleAnalyze()
   }, [handleAnalyze])
 
   const handleSave = useCallback(() => {
-    // Save current state to localStorage
     localStorage.setItem(
       'contract-draft',
-      JSON.stringify({ content, filename, selectedType })
+      JSON.stringify({ content, filename, selectedType, selectedProvider })
     )
     alert('已保存')
-  }, [content, filename, selectedType])
+  }, [content, filename, selectedType, selectedProvider])
 
   const handleDownload = useCallback(async () => {
-    // Use backend to generate proper Word doc with images
     try {
       const res = await fetch('/api/contracts/export', {
         method: 'POST',
@@ -97,7 +96,6 @@ export default function App() {
 
   const handleImageDelete = useCallback(
     (src: string) => {
-      // Remove from images array
       setImages((prev) => prev.filter((img) => img !== src))
     },
     []
@@ -113,12 +111,20 @@ export default function App() {
           <h1 className="text-lg font-semibold text-gray-800">合同审核系统</h1>
 
           {showSplitView && (
-            <ContractTypeSelect
-              types={contractTypes}
-              selected={selectedType}
-              onChange={setSelectedType}
-              disabled={isStreaming}
-            />
+            <>
+              <ContractTypeSelect
+                types={contractTypes}
+                selected={selectedType}
+                onChange={setSelectedType}
+                disabled={isStreaming}
+              />
+              <ProviderSelect
+                selected={selectedProvider}
+                onChange={setSelectedProvider}
+                disabled={isStreaming}
+                hasImages={images.length > 0}
+              />
+            </>
           )}
         </div>
 
@@ -173,6 +179,14 @@ export default function App() {
               </p>
             </div>
 
+            <div className="mb-4">
+              <ProviderSelect
+                selected={selectedProvider}
+                onChange={setSelectedProvider}
+                hasImages={images.length > 0}
+              />
+            </div>
+
             <UploadPanel
               onFileSelect={handleFileSelect}
               isLoading={state === 'uploading'}
@@ -184,9 +198,16 @@ export default function App() {
           </div>
         ) : (
           <>
-            {/* Upload overlay (shown when analyzing) */}
             {state === 'idle' && (
               <div className="max-w-xl mx-auto mt-4 px-4">
+                <div className="mb-3">
+                  <ProviderSelect
+                    selected={selectedProvider}
+                    onChange={setSelectedProvider}
+                    disabled={isStreaming}
+                    hasImages={images.length > 0}
+                  />
+                </div>
                 <UploadPanel
                   onFileSelect={handleFileSelect}
                   isLoading={state === 'uploading'}
@@ -196,7 +217,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Analyze button */}
             {state === 'idle' && content && selectedType && (
               <div className="text-center mt-4">
                 <button
@@ -209,7 +229,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Split editor */}
             {(state === 'analyzing' || state === 'reviewing' || state === 'done') && (
               <SplitEditor
                 content={content}

@@ -13,7 +13,7 @@ export interface UseAnalysisReturn {
   totalClauses: number
   currentImageIndex: number
   totalImages: number
-  analyze: (text: string, contractType: string, images: string[]) => Promise<void>
+  analyze: (text: string, contractType: string, images: string[], provider?: string) => Promise<void>
   reset: () => void
   setState: (state: WorkflowState) => void
 }
@@ -30,7 +30,7 @@ export function useAnalysis(): UseAnalysisReturn {
   const [totalImages, setTotalImages] = useState(0)
 
   const analyze = useCallback(
-    async (text: string, contractType: string, imgs: string[]) => {
+    async (text: string, contractType: string, imgs: string[], provider?: string) => {
       setIsStreaming(true)
       setError(null)
       setClauses([])
@@ -62,10 +62,8 @@ export function useAnalysis(): UseAnalysisReturn {
           } else if (result.type === 'error' && result.message) {
             setError(result.message)
             setIsStreaming(false)
-          } else if (result.type === 'partial' && result.content) {
-            // Partial JSON - could be used for progressive display
           }
-        })
+        }, provider)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Analysis failed')
         setState('idle')
