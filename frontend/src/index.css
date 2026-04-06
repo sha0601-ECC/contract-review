@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* TipTap Editor Styles */
+.ProseMirror {
+  outline: none;
+  min-height: 400px;
+  padding: 1rem;
+}
+
+.ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.ProseMirror h1 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 1em 0 0.5em;
+}
+
+.ProseMirror h2 {
+  font-size: 1.25em;
+  font-weight: bold;
+  margin: 1em 0 0.5em;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  cursor: pointer;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid #3b82f6;
+}
+
+.ProseMirror .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Highlight marks */
+.ProseMirror mark {
+  background-color: #fef08a;
+  border-radius: 2px;
+}
+
+.ProseMirror mark.risk-high {
+  background-color: #fee2e2;
+  border-left: 3px solid #ef4444;
+  padding-left: 4px;
+}
+
+.ProseMirror mark.risk-medium {
+  background-color: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  padding-left: 4px;
+}
+
+.ProseMirror mark.risk-low {
+  background-color: #dcfce7;
+  border-left: 3px solid #22c55e;
+  padding-left: 4px;
+}
+
+/* Resizable split pane */
+.split-container {
+  display: flex;
+  height: calc(100vh - 120px);
+  overflow: hidden;
+}
+
+.left-pane {
+  flex: 1;
+  overflow-y: auto;
+  border-right: 1px solid #e5e7eb;
+}
+
+.right-pane {
+  width: 400px;
+  overflow-y: auto;
+  background: #f9fafb;
+}
+
+.resize-handle {
+  width: 4px;
+  cursor: col-resize;
+  background: #e5e7eb;
+  transition: background 0.2s;
+}
+
+.resize-handle:hover {
+  background: #3b82f6;
+}
+
+/* Suggestion cards */
+.suggestion-card {
+  padding: 12px;
+  margin: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid;
+}
+
+.suggestion-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.suggestion-card.high {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.suggestion-card.medium {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.suggestion-card.low {
+  border-left-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.suggestion-card.info {
+  border-left-color: #3b82f6;
+  background: #eff6ff;
+}
+
+/* Risk level badge */
+.risk-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.risk-badge.high { background: #fee2e2; color: #dc2626; }
+.risk-badge.medium { background: #fef3c7; color: #d97706; }
+.risk-badge.low { background: #dcfce7; color: #16a34a; }
+.risk-badge.info { background: #dbeafe; color: #2563eb; }

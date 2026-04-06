@@ -1,0 +1,35 @@
+contract_type: 保密协议
+description: 适用于商业秘密保护、竞业限制、员工保密协议等
+
+risk_categories:
+  - name: 保密范围
+    keywords: [保密范围, 商业秘密, 机密信息, 定义]
+    severity: HIGH
+  - name: 保密期限
+    keywords: [保密期限, 有效期, 长期有效]
+    severity: MEDIUM
+  - name: 保密义务
+    keywords: [保密义务, 不得泄露, 不得使用]
+    severity: HIGH
+  - name: 违约责任
+    keywords: [违约金, 赔偿, 违约责任]
+    severity: HIGH
+  - name: 竞业限制
+    keywords: [竞业, 竞争业务, 同行]
+    severity: MEDIUM
+
+clause_completion_rules:
+  - missing: 保密信息定义条款
+    suggestion: 应明确保密信息的具体范围和除外情形（如公知信息、独立研发信息）
+  - missing: 保密期限条款
+    suggestion: 应明确保密义务的存续期限
+  - missing: 违约赔偿条款
+    suggestion: 应明确违约金标准和损失赔偿计算方式
+
+modification_templates:
+  - clause: 保密范围条款
+    risk: 保密范围过宽（将公知信息纳入）
+    rewrite: 保密信息指不为公众所知悉、能为权利人带来经济利益的信息，包括但不限于技术信息、经营信息。公知信息、独立反向工程获取的信息除外
+  - clause: 违约责任条款
+    risk: 违约金过高
+    rewrite: 违约方应赔偿对方因此遭受的直接损失，违约金不超过保密信息价值的X倍

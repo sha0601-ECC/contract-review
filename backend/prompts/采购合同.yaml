@@ -1,0 +1,38 @@
+contract_type: 采购合同
+description: 适用于商品采购、原材料采购、设备采购等
+
+risk_categories:
+  - name: 质量标准
+    keywords: [质量标准, 检验标准, 合格证, 质量要求]
+    severity: HIGH
+  - name: 交付验收
+    keywords: [交付, 验收, 交货期, 交割]
+    severity: HIGH
+  - name: 价格与结算
+    keywords: [价格, 价款, 结算, 付款方式, 账期]
+    severity: HIGH
+  - name: 违约责任
+    keywords: [违约, 违约金, 赔偿, 解除合同]
+    severity: MEDIUM
+  - name: 风险转移
+    keywords: [风险转移, 货物损失, 不可抗力]
+    severity: MEDIUM
+  - name: 退货与售后
+    keywords: [退货, 换货, 维修, 售后, 质保期]
+    severity: MEDIUM
+
+clause_completion_rules:
+  - missing: 质量标准条款
+    suggestion: 应明确质量标准（国家标准/行业标准/双方约定）及检验方式
+  - missing: 交付验收条款
+    suggestion: 应明确交付地点、方式、验收标准和异议期限
+  - missing: 付款条件条款
+    suggestion: 应明确付款方式（电汇/票据）、付款节点、发票要求
+
+modification_templates:
+  - clause: 违约金条款
+    risk: 违约金过高（超过合同总额30%）
+    rewrite: 违约金不超过实际损失或合同总额的X%
+  - clause: 验收条款
+    risk: 验收期限过短或标准不清
+    rewrite: 需方应在收货后X日内完成验收，逾期视为合格；质量问题应在X日内提出

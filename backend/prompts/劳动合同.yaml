@@ -1,0 +1,49 @@
+contract_type: 劳动合同
+description: 适用于标准劳动合同、聘用合同、兼职合同等
+
+risk_categories:
+  - name: 违约金风险
+    keywords: [违约金, 赔偿金, 滞纳金, 双倍, 三倍]
+    severity: HIGH
+  - name: 竞业限制
+    keywords: [竞业, 竞争限制, 竞业禁止]
+    severity: HIGH
+  - name: 超时工作
+    keywords: [加班, 调休, 休息日, 工作时间, 加班费]
+    severity: MEDIUM
+  - name: 薪酬不明
+    keywords: [工资, 薪资, 奖金, 提成, 试用期薪资]
+    severity: MEDIUM
+  - name: 社保公积金
+    keywords: [社保, 公积金, 五险一金, 保险]
+    severity: HIGH
+  - name: 合同期限
+    keywords: [合同期限, 试用期, 合同到期, 续签]
+    severity: LOW
+  - name: 解除合同
+    keywords: [解除, 辞退, 开除, 裁员, 离职]
+    severity: MEDIUM
+  - name: 保密义务
+    keywords: [保密, 机密, 商业秘密, 泄露]
+    severity: MEDIUM
+
+clause_completion_rules:
+  - missing: 社会保险条款
+    suggestion: 应明确约定依法缴纳五险一金，包括险种、缴费基数和比例
+  - missing: 争议解决条款
+    suggestion: 建议补充劳动争议解决方式，如协商、调解、仲裁或诉讼
+  - missing: 工作内容和工作地点
+    suggestion: 应明确具体工作岗位和工作地点
+  - missing: 考勤与休假
+    suggestion: 应明确工作时间、休息休假制度
+
+modification_templates:
+  - clause: 违约金条款
+    risk: 违约金过高或适用情形过宽
+    rewrite: 违约金不得超过劳动者本人月工资的X倍，且仅限于专项培训服务期约定
+  - clause: 竞业限制条款
+    risk: 竞业限制期限过长或补偿过低
+    rewrite: 竞业限制期限不超过X个月，月补偿金不低于离职前月平均工资的X%
+  - clause: 试用期条款
+    risk: 试用期工资低于转正工资80%
+    rewrite: 试用期工资不低于转正工资的80%，且不低于当地最低工资标准

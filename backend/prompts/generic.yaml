@@ -1,0 +1,35 @@
+contract_type: 通用合同
+description: 适用于未分类的其他合同类型
+
+risk_categories:
+  - name: 主体资格
+    keywords: [主体, 资质, 资格, 法定代表人]
+    severity: MEDIUM
+  - name: 权利义务
+    keywords: [权利, 义务, 责任]
+    severity: MEDIUM
+  - name: 违约责任
+    keywords: [违约, 违约金, 赔偿, 损失]
+    severity: HIGH
+  - name: 争议解决
+    keywords: [争议, 仲裁, 诉讼, 管辖]
+    severity: MEDIUM
+  - name: 合同生效
+    keywords: [生效, 签署, 日期, 有效期]
+    severity: LOW
+
+clause_completion_rules:
+  - missing: 争议解决条款
+    suggestion: 建议补充争议解决方式（协商/仲裁/诉讼）和管辖法院
+  - missing: 违约责任条款
+    suggestion: 应明确违约责任承担方式和违约金标准
+  - missing: 合同期限条款
+    suggestion: 应明确合同的有效期和终止条件
+
+modification_templates:
+  - clause: 违约责任条款
+    risk: 违约责任不对等（一方的违约责任明显过重）
+    rewrite: 双方违约责任应对等，违约金应与实际损失相当
+  - clause: 争议解决条款
+    risk: 管辖法院约定对一方明显不利
+    rewrite: 管辖法院应为被告住所地或合同履行地人民法院

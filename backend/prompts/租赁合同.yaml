@@ -1,0 +1,38 @@
+contract_type: 租赁合同
+description: 适用于房屋租赁、设备租赁、车辆租赁等
+
+risk_categories:
+  - name: 租金与押金
+    keywords: [租金, 押金, 保证金, 付款方式]
+    severity: HIGH
+  - name: 租赁期限
+    keywords: [租赁期限, 起止日期, 续租]
+    severity: MEDIUM
+  - name: 维修与维护
+    keywords: [维修, 维护, 修缮, 保养]
+    severity: MEDIUM
+  - name: 提前解约
+    keywords: [提前解约, 退租, 违约, 违约金]
+    severity: HIGH
+  - name: 房屋状态
+    keywords: [房屋状态, 交付标准, 装修]
+    severity: MEDIUM
+  - name: 费用承担
+    keywords: [物业费, 水电费, 燃气费, 费用承担]
+    severity: MEDIUM
+
+clause_completion_rules:
+  - missing: 押金条款
+    suggestion: 应明确押金数额、退还条件、扣除情形和退还期限
+  - missing: 费用分担条款
+    suggestion: 应明确物业费、水电费等各项费用的承担方和结算方式
+  - missing: 提前解约条款
+    suggestion: 应明确提前解约的通知期限和违约金标准
+
+modification_templates:
+  - clause: 押金条款
+    risk: 押金过高或退还条件不明
+    rewrite: 押金不超过X个月租金，退还时应扣除正常损耗，不含违约金
+  - clause: 提前解约条款
+    risk: 解约权不对等（仅出租方有权解约）
+    rewrite: 双方均有权在X个月前书面通知解约，违约方承担赔偿责任
